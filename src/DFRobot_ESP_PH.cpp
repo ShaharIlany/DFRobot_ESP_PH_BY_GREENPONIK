@@ -161,83 +161,72 @@ void DFRobot_ESP_PH::phCalibration(byte mode)
 {
     char *receivedBufferPtr;
     static boolean phCalibrationFinish = 0;
-    static boolean enterCalibrationFlag = 0;
     switch (mode)
     {
     case 0:
-        if (enterCalibrationFlag)
-        {
-            Serial.println(F(">>>Command Error<<<"));
-        }
+        Serial.println(F(">>>Command Error<<<"));
         break;
 
-    case 1:
-        enterCalibrationFlag = 1;
-        phCalibrationFinish = 0;
-        Serial.println();
-        Serial.println(F(">>>Enter PH Calibration Mode<<<"));
-        Serial.println(F(">>>Please put the probe into the 4.0 or 7.0 standard buffer solution<<<"));
-        Serial.println();
-        break;
+    // case 1:
+    //     phCalibrationFinish = 0;
+    //     Serial.println();
+    //     Serial.println(F(">>>Enter PH Calibration Mode<<<"));
+    //     Serial.println(F(">>>Please put the probe into the 4.0 or 7.0 standard buffer solution<<<"));
+    //     Serial.println();
+    //     break;
 
     case 2:
-        if (enterCalibrationFlag)
+        if ((this->_voltage > PH_8_VOLTAGE) && (this->_voltage < PH_6_VOLTAGE))
+        { // buffer solution:7.0
+            Serial.println();
+            Serial.print(F(">>>Buffer Solution:7.0"));
+            this->_neutralVoltage = this->_voltage;
+            Serial.println(F(",Send EXITPH to Save and Exit<<<"));
+            Serial.println();
+            phCalibrationFinish = 1;
+        }
+        else if ((this->_voltage > PH_5_VOLTAGE) && (this->_voltage < PH_3_VOLTAGE))
+        { //buffer solution:4.0
+            Serial.println();
+            Serial.print(F(">>>Buffer Solution:4.0"));
+            this->_acidVoltage = this->_voltage;
+            Serial.println(F(",Send EXITPH to Save and Exit<<<"));
+            Serial.println();
+            phCalibrationFinish = 1;
+        }
+        else
         {
-            if ((this->_voltage > PH_8_VOLTAGE) && (this->_voltage < PH_6_VOLTAGE))
-            { // buffer solution:7.0
-                Serial.println();
-                Serial.print(F(">>>Buffer Solution:7.0"));
-                this->_neutralVoltage = this->_voltage;
-                Serial.println(F(",Send EXITPH to Save and Exit<<<"));
-                Serial.println();
-                phCalibrationFinish = 1;
-            }
-            else if ((this->_voltage > PH_5_VOLTAGE) && (this->_voltage < PH_3_VOLTAGE))
-            { //buffer solution:4.0
-                Serial.println();
-                Serial.print(F(">>>Buffer Solution:4.0"));
-                this->_acidVoltage = this->_voltage;
-                Serial.println(F(",Send EXITPH to Save and Exit<<<"));
-                Serial.println();
-                phCalibrationFinish = 1;
-            }
-            else
-            {
-                Serial.println();
-                Serial.print(F(">>>Buffer Solution Error Try Again<<<"));
-                Serial.println(); // not buffer solution or faulty operation
-                phCalibrationFinish = 0;
-            }
+            Serial.println();
+            Serial.print(F(">>>Buffer Solution Error Try Again<<<"));
+            Serial.println(); // not buffer solution or faulty operation
+            phCalibrationFinish = 0;
         }
         break;
 
     case 3: //store calibration value in eeprom
-        if (enterCalibrationFlag)
+        Serial.println();
+        if (phCalibrationFinish)
         {
-            Serial.println();
-            if (phCalibrationFinish)
+            if ((this->_voltage > PH_8_VOLTAGE) && (this->_voltage < PH_5_VOLTAGE))
             {
-                if ((this->_voltage > PH_8_VOLTAGE) && (this->_voltage < PH_5_VOLTAGE))
-                {
-                    EEPROM.writeFloat(PHVALUEADDR, this->_neutralVoltage);
-                    EEPROM.commit();
-                }
-                else if ((this->_voltage > PH_5_VOLTAGE) && (this->_voltage < PH_3_VOLTAGE))
-                {
-                    EEPROM.writeFloat(PHVALUEADDR + sizeof(float), this->_acidVoltage);
-                    EEPROM.commit();
-                }
-                Serial.print(F(">>>Calibration Successful"));
+                EEPROM.writeFloat(PHVALUEADDR, this->_neutralVoltage);
+                EEPROM.commit();
             }
-            else
+            else if ((this->_voltage > PH_5_VOLTAGE) && (this->_voltage < PH_3_VOLTAGE))
             {
-                Serial.print(F(">>>Calibration Failed"));
+                EEPROM.writeFloat(PHVALUEADDR + sizeof(float), this->_acidVoltage);
+                EEPROM.commit();
             }
-            Serial.println(F(",Exit PH Calibration Mode<<<"));
-            Serial.println();
-            phCalibrationFinish = 0;
-            enterCalibrationFlag = 0;
+            Serial.print(F(">>>Calibration Successful"));
         }
+        else
+        {
+            Serial.print(F(">>>Calibration Failed"));
+        }
+        Serial.println(F(",Exit PH Calibration Mode<<<"));
+        Serial.println();
+        phCalibrationFinish = 0;
+    
         break;
     }
 }

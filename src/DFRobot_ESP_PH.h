@@ -48,15 +48,6 @@ private:
     float _voltage;
     float _temperature;
 
-    char _cmdReceivedBuffer[ReceivedBufferLength]; //store the Serial CMD
-    byte _cmdReceivedBufferIndex;
-
-private:
-    boolean cmdSerialDataAvailable();
-    void calibration(float voltage, float temperature, char *cmd); //calibration by Serial CMD
-    void calibration(float voltage, float temperature);
-    byte cmdParse(const char *cmd);
-    byte cmdParse();
 };
 
 #endif

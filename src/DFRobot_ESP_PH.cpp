@@ -75,88 +75,6 @@ float DFRobot_ESP_PH::readPH(float voltage, float temperature)
     return this->_phValue;
 }
 
-void DFRobot_ESP_PH::calibration(float voltage, float temperature, char *cmd)
-{
-    this->_voltage = voltage;
-    this->_temperature = temperature;
-    strupr(cmd);
-    phCalibration(cmdParse(cmd)); // if received Serial CMD from the serial monitor, enter into the calibration mode
-}
-
-void DFRobot_ESP_PH::calibration(float voltage, float temperature)
-{
-    this->_voltage = voltage;
-    this->_temperature = temperature;
-    if (cmdSerialDataAvailable() > 0)
-    {
-        phCalibration(cmdParse()); // if received Serial CMD from the serial monitor, enter into the calibration mode
-    }
-}
-
-boolean DFRobot_ESP_PH::cmdSerialDataAvailable()
-{
-    char cmdReceivedChar;
-    static unsigned long cmdReceivedTimeOut = millis();
-    while (Serial.available() > 0)
-    {
-        if (millis() - cmdReceivedTimeOut > 500U)
-        {
-            this->_cmdReceivedBufferIndex = 0;
-            memset(this->_cmdReceivedBuffer, 0, (ReceivedBufferLength));
-        }
-        cmdReceivedTimeOut = millis();
-        cmdReceivedChar = Serial.read();
-        if (cmdReceivedChar == '\n' || this->_cmdReceivedBufferIndex == ReceivedBufferLength - 1)
-        {
-            this->_cmdReceivedBufferIndex = 0;
-            strupr(this->_cmdReceivedBuffer);
-            return true;
-        }
-        else
-        {
-            this->_cmdReceivedBuffer[this->_cmdReceivedBufferIndex] = cmdReceivedChar;
-            this->_cmdReceivedBufferIndex++;
-        }
-    }
-    return false;
-}
-
-byte DFRobot_ESP_PH::cmdParse(const char *cmd)
-{
-    byte modeIndex = 0;
-    if (strstr(cmd, "ENTERPH") != NULL)
-    {
-        modeIndex = 1;
-    }
-    else if (strstr(cmd, "EXITPH") != NULL)
-    {
-        modeIndex = 3;
-    }
-    else if (strstr(cmd, "CALPH") != NULL)
-    {
-        modeIndex = 2;
-    }
-    return modeIndex;
-}
-
-byte DFRobot_ESP_PH::cmdParse()
-{
-    byte modeIndex = 0;
-    if (strstr(this->_cmdReceivedBuffer, "ENTERPH") != NULL)
-    {
-        modeIndex = 1;
-    }
-    else if (strstr(this->_cmdReceivedBuffer, "EXITPH") != NULL)
-    {
-        modeIndex = 3;
-    }
-    else if (strstr(this->_cmdReceivedBuffer, "CALPH") != NULL)
-    {
-        modeIndex = 2;
-    }
-    return modeIndex;
-}
-
 String DFRobot_ESP_PH::phCalibration(float voltage, float temperature)
 {    
     this->_voltage = voltage;
@@ -169,7 +87,7 @@ String DFRobot_ESP_PH::phCalibration(float voltage, float temperature)
         this->_neutralVoltage = this->_voltage;
         EEPROM.writeFloat(PHVALUEADDR, this->_neutralVoltage);
         EEPROM.commit();
-        return "OK:7:" + String(this->_neutralVoltage)
+        return "OK:7:" + String(this->_neutralVoltage);
     }
     else if ((this->_voltage > PH_5_VOLTAGE) && (this->_voltage < PH_3_VOLTAGE))
     { //buffer solution:4.0
@@ -178,13 +96,13 @@ String DFRobot_ESP_PH::phCalibration(float voltage, float temperature)
         this->_acidVoltage = this->_voltage;
         EEPROM.writeFloat(PHVALUEADDR + sizeof(float), this->_acidVoltage);
         EEPROM.commit();
-        return "OK:4:" + String(this->_acidVoltage)
+        return "OK:4:" + String(this->_acidVoltage);
     }
     else
     {
         Serial.println();
         Serial.print(F(">>>Buffer Solution Error Try Again<<<"));
         Serial.println(); // not buffer solution or faulty operation
-        return "ERR"
+        return "ERR";
     }
 }

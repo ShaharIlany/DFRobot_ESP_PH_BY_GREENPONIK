@@ -37,7 +37,7 @@ class DFRobot_ESP_PH
 public:
     DFRobot_ESP_PH();
     ~DFRobot_ESP_PH();
-    void phCalibration(byte mode); // calibration process, wirte key parameters to EEPROM
+    String phCalibration(float voltage, float temperature);
     float readPH(float voltage, float temperature); // voltage to pH value, with temperature compensation
     void begin();                                   //initialization
 
